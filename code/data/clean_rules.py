@@ -90,6 +90,63 @@ def valid_number(value, low: float, high: float) -> float | None:
     return round(number, 2)
 
 
+def parse_ram_rom_from_name(value) -> tuple[float | None, float | None]:
+    """从手机名称中解析内存和存储，例如 (12GB/256GB)、（16GB）。"""
+
+    if pd.isna(value):
+        return None, None
+    text = str(value)
+
+    match = re.search(
+        r"[\(（]\s*(\d+(?:\.\d+)?)\s*GB\s*/\s*(\d+(?:\.\d+)?)\s*(GB|TB)\s*[\)）]",
+        text,
+        flags=re.I,
+    )
+    if match:
+        ram = float(match.group(1))
+        rom = float(match.group(2))
+        if match.group(3).upper() == "TB":
+            rom *= 1024
+        return round(ram, 1), round(rom, 1)
+
+    match = re.search(
+        r"[\(（]\s*(\d+(?:\.\d+)?)\s*(GB|TB)\s*[\)）]",
+        text,
+        flags=re.I,
+    )
+    if match:
+        rom = float(match.group(1))
+        if match.group(2).upper() == "TB":
+            rom *= 1024
+        return None, round(rom, 1)
+
+    return None, None
+
+
+def parse_battery_from_title(value) -> float | None:
+    if pd.isna(value):
+        return None
+    match = re.search(r"(\d+(?:\.\d+)?)\s*mAh", str(value), flags=re.I)
+    if not match:
+        return None
+    number = float(match.group(1))
+    return number if 500 <= number <= 50000 else None
+
+
+def parse_screen_from_title(value) -> float | None:
+    if pd.isna(value):
+        return None
+    match = re.search(
+        r"(\d+(?:\.\d+)?)\s*(?:英寸|inch)",
+        str(value),
+        flags=re.I,
+    )
+    if not match:
+        return None
+    number = float(match.group(1))
+    return number if 1 <= number <= 15 else None
+
+
 def clean_records(records: list[dict]) -> pd.DataFrame:
     """把原始记录清洗成适合入库的 DataFrame。"""
 
@@ -116,6 +173,23 @@ def clean_records(records: list[dict]) -> pd.DataFrame:
     frame["ram"] = frame["ram"].apply(lambda value: valid_number(value, 1, 64))
     frame["rom"] = frame["rom"].apply(lambda value: valid_number(value, 1, 4096))
 
+    parsed_memory = frame["name"].apply(parse_ram_rom_from_name)
+    frame["ram_from_name"] = parsed_memory.apply(lambda item: item[0])
+    frame["rom_from_name"] = parsed_memory.apply(lambda item: item[1])
+    frame["ram"] = frame["ram"].fillna(frame["ram_from_name"])
+    frame["rom"] = frame["rom"].fillna(frame["rom_from_name"])
+    frame = frame.drop(columns=["ram_from_name", "rom_from_name"])
+
+    if "title" not in frame:
+        frame["title"] = ""
+    frame["title"] = frame["title"].apply(clean_text)
+    frame["battery"] = frame["battery"].fillna(
+        frame["title"].apply(parse_battery_from_title)
+    )
+    frame["screen_size"] = frame["screen_size"].fillna(
+        frame["title"].apply(parse_screen_from_title)
+    )
+
     for column in [
         "resolution",
         "camera",
@@ -123,6 +197,7 @@ def clean_records(records: list[dict]) -> pd.DataFrame:
         "release_date",
         "source",
         "url",
+        "title",
     ]:
         if column not in frame:
             frame[column] = ""

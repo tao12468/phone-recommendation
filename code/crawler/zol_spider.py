@@ -180,7 +180,10 @@ def parse_list_page(html: str) -> list[dict]:
             continue
 
         url = urljoin(BASE_URL, link["href"])
-        name = link.get_text(" ", strip=True)
+        name = next(
+            (child.strip() for child in link.contents if isinstance(child, str)),
+            link.get_text(" ", strip=True),
+        )
         price = parse_price(text)
         product_id_match = re.search(r"index(\d+)\.shtml", url)
         product_id = int(product_id_match.group(1)) if product_id_match else 0
