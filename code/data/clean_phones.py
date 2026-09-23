@@ -47,6 +47,52 @@ def clean_usage_scenes(value) -> str:
     return ",".join(tokens)
 
 
+def extract_product_name(value) -> str:
+    """只保留手机型号名称，去掉颜色、内存、宣传语等描述。"""
+
+    if pd.isna(value):
+        return ""
+    text = str(value).strip()
+
+    # 优先匹配型号名称后面紧跟的内存版本，例如：
+    # (12GB/256GB)、（256GB）、（8G）、（国际版/双4G）。
+    match = re.search(
+        r"^(.*?\(\d+\s*(?:GB|TB|G)[^)]*\)|.*?（[^）]*(?:GB|G|国际版|全网通)[^）]*）)",
+        text,
+    )
+    if match:
+        return match.group(1).strip()
+
+    # 没有明确的型号版本括号时，在常见宣传语开始前截断。
+    description_markers = [
+        "iPhone的",
+        "外观设计",
+        "手机制式",
+        "蔡司",
+        "骁龙",
+        "天玑",
+        "麒麟",
+        "徕卡",
+        "HarmonyOS",
+        "沉浸",
+        "圆弧",
+        "超薄",
+        "大电池",
+        "金标",
+        "蓝晶",
+        "超视网膜",
+    ]
+    match = re.search(rf"\s*({'|'.join(description_markers)})", text)
+    if match:
+        return text[: match.start()].strip()
+
+    # 只有很短的名字时，直接保留全部，避免误删产品名。
+    if len(text) <= 60:
+        return text.strip()
+
+    return text[:120].strip()
+
+
 def valid_number(value, low: float, high: float) -> float | None:
     if pd.isna(value):
         return None
@@ -73,7 +119,8 @@ def clean_records(records: list[dict]) -> pd.DataFrame:
         axis=1,
     )
 
-    frame["name"] = frame["name"].fillna("").astype(str).str.strip().str.slice(0, 200)
+    frame["name"] = frame["name"].apply(extract_product_name).str.slice(0, 200)
+    frame = frame[frame["name"].str.len() > 0]
     frame["price"] = frame["price"].apply(lambda value: valid_number(value, 1, 200000))
     frame["screen_size"] = frame["screen_size"].apply(
         lambda value: valid_number(value, 1, 15)
@@ -112,6 +159,8 @@ def clean_records(records: list[dict]) -> pd.DataFrame:
 
     frame["camera"] = frame["camera"].replace({"暂无数据": ""})
     frame["source"] = frame["source"].replace({"": "ZOL"})
+    frame["brand"] = frame["brand"].replace({"": "未知"})
+    frame = frame[frame["price"].notna()]
     frame = frame.drop_duplicates(subset=["source_id", "url"], keep="first")
     frame = frame.sort_values("source_id")
 
@@ -228,6 +277,13 @@ def main() -> None:
 
     raw = json.loads(args.input.read_text(encoding="utf-8"))
     cleaned = clean_records(raw)
+
+    print(f"原始数据：{len(raw)} 条")
+    print(f"清洗后：{len(cleaned)} 条")
+    print("主要字段缺失数量：")
+    for column in ["price", "screen_size", "battery", "cpu", "ram", "rom"]:
+        missing = int(cleaned[column].isna().sum())
+        print(f"{column}: {missing}")
 
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     cleaned.to_json(args.output_json, orient="records", force_ascii=False, indent=2)
