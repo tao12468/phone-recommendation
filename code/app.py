@@ -6,6 +6,7 @@
 from flask import Flask, jsonify, request, send_from_directory
 
 from algorithms.simple_recommender import recommend
+from data import database
 from data.sample_phones import PHONES
 
 
@@ -95,6 +96,31 @@ def recommendations():
             "message": "阶段 1 简单推荐",
         }
     )
+
+
+@app.get("/data")
+def data_viewer():
+    return send_from_directory("static", "data_viewer.html")
+
+
+@app.get("/api/db/phones")
+def database_phones():
+    page = request.args.get("page", 1, type=int)
+    page_size = request.args.get("page_size", 20, type=int)
+    brand = request.args.get("brand")
+    keyword = request.args.get("keyword")
+    result = database.get_phones_page(
+        page=page,
+        page_size=page_size,
+        brand=brand,
+        keyword=keyword,
+    )
+    return jsonify(result)
+
+
+@app.get("/api/db/brands")
+def database_brands():
+    return jsonify({"items": database.get_brands()})
 
 
 if __name__ == "__main__":

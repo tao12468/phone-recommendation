@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>手机原始数据查看</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>手机原始数据查看</h1>
+        <p>数据存储与查看阶段</p>
+      </div>
+      <div class="health" id="summary">正在读取...</div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <div class="filter-row">
+          <label>
+            品牌
+            <select id="brand-filter">
+              <option value="">全部</option>
+            </select>
+          </label>
+          <label>
+            关键词
+            <input id="keyword" type="text" placeholder="例如 骁龙、小米、折叠屏" />
+          </label>
+          <button id="search-btn" type="button">查询</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-title">
+          <h2>手机数据列表</h2>
+          <div>
+            <button id="prev-btn" type="button">上一页</button>
+            <button id="next-btn" type="button">下一页</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="phone-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>名称</th>
+                <th>品牌</th>
+                <th>价格</th>
+                <th>屏幕</th>
+                <th>电池</th>
+                <th>CPU</th>
+                <th>内存/存储</th>
+                <th>系统</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="/static/data_viewer.js"></script>
+  </body>
+</html>
