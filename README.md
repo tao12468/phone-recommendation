@@ -2,7 +2,7 @@
 
 本项目根据《基于数据驱动的个性化手机推荐平台设计与实现》开题报告，从头开始实现。
 
-当前进度：阶段 0 和阶段 1 已完成，系统已能启动并展示手机列表与简单推荐。
+当前进度：阶段 0、阶段 1 已完成，数据采集已完成 1000 条手机原始数据。
 
 ## 分阶段实现思路
 
@@ -41,6 +41,7 @@ phone-recommendation/
 ├── code/                 # 全部代码，按模块进一步拆分
 │   ├── app.py            # 后端入口
 │   ├── algorithms/       # 特征工程与推荐算法
+│   ├── crawler/          # 手机数据爬虫
 │   ├── data/             # 样本数据与数据库脚本
 │   ├── static/           # 前端页面
 │   └── tests/            # 测试用例
@@ -76,6 +77,7 @@ Set-Location ..
 - 10 款手机样本数据
 - 基础前端页面
 - 6 个阶段 1 接口测试
+- 中关村在线手机爬虫：1845 条列表，1000 条已补全参数
 
 ## Git 版本管理
 
@@ -84,3 +86,18 @@ Set-Location ..
 ## 下一步
 
 进入阶段 2：设计数据库和数据层，把写死在代码里的手机数据改成可持久化存储。
+
+## 数据采集
+
+爬虫位于 `code/crawler/zol_spider.py`，数据文件：
+
+- `code/data/zol_phone_list.json`：1845 条手机列表
+- `code/data/phones_raw.json`：1000 条手机参数数据
+
+重新抓取列表：
+
+```powershell
+Set-Location code
+..\.venv\Scripts\python.exe crawler\zol_spider.py list --max-pages 5 --brands 613,1795,1673,544,98,50840,55075,34645,35579,1434,55535,35005,55731,295,642
+Set-Location ..
+```
