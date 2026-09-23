@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>个性化手机推荐平台</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>个性化手机推荐平台</h1>
+        <p>阶段 1：最小可运行闭环</p>
+      </div>
+      <div class="health" id="health">正在检查服务...</div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2>简单偏好</h2>
+        <div class="filter-row">
+          <label>
+            预算
+            <input id="budget" type="number" placeholder="例如 4000" min="0" />
+          </label>
+          <label>
+            品牌
+            <input id="brand" type="text" placeholder="例如 小米,苹果" />
+          </label>
+          <label>
+            使用场景
+            <input id="scene" type="text" placeholder="例如 游戏,拍照" />
+          </label>
+          <button id="recommend-btn" type="button">获取推荐</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>为你推荐</h2>
+        <div id="recommend-list" class="card-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-title">
+          <h2>手机库</h2>
+          <button id="refresh-btn" type="button">刷新列表</button>
+        </div>
+        <div id="phone-list" class="card-list"></div>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
