@@ -2,7 +2,7 @@
 
 本项目根据《基于数据驱动的个性化手机推荐平台设计与实现》开题报告，从头开始实现。
 
-当前进度：阶段 0、阶段 1 已完成，数据采集已完成 1000 条手机原始数据。
+当前进度：阶段 0、阶段 1 已完成；已采集并清洗 1000 条手机数据，写入 MySQL。
 
 ## 分阶段实现思路
 
@@ -78,6 +78,7 @@ Set-Location ..
 - 基础前端页面
 - 6 个阶段 1 接口测试
 - 中关村在线手机爬虫：1845 条列表，1000 条已补全参数
+- 数据清洗脚本：JSON -> MySQL -> Excel
 
 ## Git 版本管理
 
@@ -101,3 +102,21 @@ Set-Location code
 ..\.venv\Scripts\python.exe crawler\zol_spider.py list --max-pages 5 --brands 613,1795,1673,544,98,50840,55075,34645,35579,1434,55535,35005,55731,295,642
 Set-Location ..
 ```
+
+## 数据清洗与 MySQL 入库
+
+清洗脚本位于 `code/data/clean_phones.py`，MySQL 表结构见 `code/data/schema_mysql.sql`。
+
+清洗并写入 MySQL、同时导出 Excel：
+
+```powershell
+Set-Location code
+..\.venv\Scripts\python.exe -m data.clean_phones --password 123456
+Set-Location ..
+```
+
+生成文件：
+
+- `code/data/phones_clean.json`
+- `code/data/phones_clean.xlsx`
+- MySQL 数据库 `phone_recommender` 中的 `phones_clean` 表
