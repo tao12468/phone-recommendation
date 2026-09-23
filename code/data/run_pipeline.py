@@ -7,7 +7,6 @@ import json
 from pathlib import Path
 
 from data.clean_rules import clean_records
-from data.excel_exporter import export_excel
 from data.mysql_writer import write_to_mysql
 
 
@@ -15,7 +14,6 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="清洗手机数据并写入 MySQL")
     parser.add_argument("--input", type=Path, default=Path("data/phones_raw.json"))
     parser.add_argument("--output-json", type=Path, default=Path("data/phones_clean.json"))
-    parser.add_argument("--excel", type=Path, default=Path("data/phones_clean.xlsx"))
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=3306)
     parser.add_argument("--user", default="root")
@@ -49,11 +47,6 @@ def main() -> None:
         print(f"已清洗并写入 MySQL：{count} 条")
     else:
         print(f"已清洗：{len(cleaned)} 条，未写入 MySQL")
-
-    if args.excel:
-        output = export_excel(cleaned, args.excel)
-        print(f"已导出 Excel：{output}")
-
 
 if __name__ == "__main__":
     main()

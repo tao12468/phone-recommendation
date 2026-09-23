@@ -109,12 +109,13 @@ Set-Location ..
 
 - `code/data/clean_rules.py`：清洗规则
 - `code/data/mysql_writer.py`：写入 MySQL
-- `code/data/excel_exporter.py`：导出 Excel
 - `code/data/run_pipeline.py`：流水线入口
+
+查看用的 Excel 导出不在正式流程内，单独通过 `code/data/export_excel.py` 按需执行。
 
 MySQL 表结构见 `code/data/schema_mysql.sql`。
 
-清洗并写入 MySQL、同时导出 Excel：
+清洗并写入 MySQL：
 
 ```powershell
 Set-Location code
@@ -122,8 +123,15 @@ Set-Location code
 Set-Location ..
 ```
 
-生成文件：
+正式流程生成文件：
 
 - `code/data/phones_clean.json`
-- `code/data/phones_clean.xlsx`
 - MySQL 数据库 `phone_recommender` 中的 `phones_clean` 表
+
+需要人工查看时，单独从 MySQL 导出 Excel：
+
+```powershell
+Set-Location code
+..\.venv\Scripts\python.exe -m data.export_excel --password 123456
+Set-Location ..
+```
