@@ -105,13 +105,20 @@ Set-Location ..
 
 ## 数据清洗与 MySQL 入库
 
-清洗脚本位于 `code/data/clean_phones.py`，MySQL 表结构见 `code/data/schema_mysql.sql`。
+数据清洗流水线已经拆分为独立模块：
+
+- `code/data/clean_rules.py`：清洗规则
+- `code/data/mysql_writer.py`：写入 MySQL
+- `code/data/excel_exporter.py`：导出 Excel
+- `code/data/run_pipeline.py`：流水线入口
+
+MySQL 表结构见 `code/data/schema_mysql.sql`。
 
 清洗并写入 MySQL、同时导出 Excel：
 
 ```powershell
 Set-Location code
-..\.venv\Scripts\python.exe -m data.clean_phones --password 123456
+..\.venv\Scripts\python.exe -m data.run_pipeline --password 123456
 Set-Location ..
 ```
 

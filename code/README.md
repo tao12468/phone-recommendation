@@ -9,7 +9,7 @@ code/
 ├── app.py                 # Flask 后端入口
 ├── algorithms/            # 推荐算法与特征工程
 ├── crawler/               # 手机数据爬虫
-├── data/                  # 手机样本、清洗与数据库脚本
+├── data/                  # 手机样本、清洗、MySQL 与 Excel 脚本
 ├── static/                # 前端页面、脚本与样式
 └── tests/                 # 自动化测试
 ```
