@@ -5,6 +5,7 @@
 
 from flask import Flask, jsonify, request, send_from_directory
 
+from algorithms import content_recommender
 from algorithms.simple_recommender import recommend
 from data import database
 from data.sample_phones import PHONES
@@ -96,6 +97,40 @@ def recommendations():
             "message": "阶段 1 简单推荐",
         }
     )
+
+
+@app.get("/api/recommendations/content")
+def content_recommendations():
+    budget = request.args.get("budget", type=float)
+    brands = _split_csv(request.args.get("brand"))
+    scenes = _split_csv(request.args.get("scene"))
+    preferred_os = _split_csv(request.args.get("os"))
+    limit = request.args.get("limit", 5, type=int)
+    limit = max(1, min(limit, 10))
+
+    preferences = {
+        "budget": budget,
+        "brands": brands,
+        "scenes": scenes,
+        "os": preferred_os,
+    }
+    items = content_recommender.recommend(preferences, top_n=limit)
+
+    return jsonify(
+        {
+            "items": items,
+            "strategy": "content_based",
+            "message": "基于内容过滤推荐",
+        }
+    )
+
+
+@app.get("/api/phones/similar/<int:phone_id>")
+def similar_phone_list(phone_id: int):
+    limit = request.args.get("limit", 5, type=int)
+    limit = max(1, min(limit, 10))
+    items = content_recommender.similar_phones(phone_id, top_n=limit)
+    return jsonify({"items": items})
 
 
 @app.get("/data")
