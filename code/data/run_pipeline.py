@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from data.clean_rules import clean_records
+from data.impute_missing import fill_missing_values
 from data.mysql_writer import write_to_mysql
 
 
@@ -24,13 +25,20 @@ def main() -> None:
 
     raw = json.loads(args.input.read_text(encoding="utf-8"))
     cleaned = clean_records(raw)
+    before_fill = {
+        column: int(cleaned[column].isna().sum())
+        for column in ["screen_size", "battery", "ram", "rom"]
+    }
+    cleaned = fill_missing_values(cleaned)
+    after_fill = {
+        column: int(cleaned[column].isna().sum())
+        for column in ["screen_size", "battery", "ram", "rom"]
+    }
 
     print(f"原始数据：{len(raw)} 条")
     print(f"清洗后：{len(cleaned)} 条")
-    print("主要字段缺失数量：")
-    for column in ["price", "screen_size", "battery", "cpu", "ram", "rom"]:
-        missing = int(cleaned[column].isna().sum())
-        print(f"{column}: {missing}")
+    print(f"填充前缺失：{before_fill}")
+    print(f"填充后缺失：{after_fill}")
 
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     cleaned.to_json(args.output_json, orient="records", force_ascii=False, indent=2)
