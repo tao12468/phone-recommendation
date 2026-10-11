@@ -9,10 +9,12 @@ from flask import Flask, jsonify, request, send_from_directory
 
 from algorithms import content_recommender
 from algorithms import collaborative_recommender
+from algorithms import feedback_engine
 from algorithms import hybrid_recommender
 from algorithms.simple_recommender import recommend
 from data import database
 from data import interaction_repository
+from data import preference_repository
 from data.sample_phones import PHONES
 
 
@@ -208,6 +210,38 @@ def similar_phone_list(phone_id: int):
     limit = max(1, min(limit, 10))
     items = content_recommender.similar_phones(phone_id, top_n=limit)
     return jsonify({"items": items})
+
+
+@app.post("/api/behavior")
+def record_behavior():
+    payload = request.get_json(silent=True) or request.form
+    user_id = payload.get("user_id")
+    phone_source_id = payload.get("phone_source_id")
+    event_type = payload.get("event_type")
+
+    try:
+        user_id = int(user_id)
+        phone_source_id = int(phone_source_id)
+    except (TypeError, ValueError):
+        user_id = None
+        phone_source_id = None
+
+    if not user_id or not phone_source_id or event_type not in {"view", "click", "compare", "favorite"}:
+        return jsonify({"error": "参数不完整或 event_type 不合法"}), 400
+
+    preferences = feedback_engine.record_interaction(
+        user_id,
+        phone_source_id,
+        event_type,
+        MYSQL_CONFIG,
+    )
+    return jsonify({"status": "ok", "preferences": preferences})
+
+
+@app.get("/api/preferences/<int:user_id>")
+def user_preferences(user_id: int):
+    preferences = preference_repository.load_preferences(user_id, **MYSQL_CONFIG)
+    return jsonify(preferences)
 
 
 @app.get("/data")
