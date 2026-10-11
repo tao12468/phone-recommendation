@@ -9,6 +9,7 @@ from flask import Flask, jsonify, request, send_from_directory
 
 from algorithms import content_recommender
 from algorithms import collaborative_recommender
+from algorithms import hybrid_recommender
 from algorithms.simple_recommender import recommend
 from data import database
 from data import interaction_repository
@@ -161,6 +162,42 @@ def collaborative_recommendations():
             "items": items,
             "strategy": "collaborative",
             "message": message,
+        }
+    )
+
+
+@app.get("/api/recommendations/hybrid")
+def hybrid_recommendations():
+    user_id = request.args.get("user_id", type=int)
+    budget = request.args.get("budget", type=float)
+    brands = _split_csv(request.args.get("brand"))
+    scenes = _split_csv(request.args.get("scene"))
+    preferred_os = _split_csv(request.args.get("os"))
+    limit = request.args.get("limit", 5, type=int)
+    limit = max(1, min(limit, 10))
+
+    preferences = {
+        "budget": budget,
+        "brands": brands,
+        "scenes": scenes,
+        "os": preferred_os,
+    }
+    interactions = (
+        interaction_repository.load_interactions(**MYSQL_CONFIG)
+        if user_id
+        else None
+    )
+    items = hybrid_recommender.recommend_hybrid(
+        preferences,
+        user_id=user_id,
+        top_n=limit,
+        interactions=interactions,
+    )
+    return jsonify(
+        {
+            "items": items,
+            "strategy": "hybrid",
+            "message": "内容过滤与协同过滤的混合推荐",
         }
     )
 
