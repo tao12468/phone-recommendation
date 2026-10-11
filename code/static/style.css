@@ -153,6 +153,10 @@ button:hover {
   color: #64748b;
 }
 
+.hidden {
+  display: none;
+}
+
 .table-wrap {
   margin-top: 16px;
   overflow-x: auto;

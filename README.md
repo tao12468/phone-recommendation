@@ -60,6 +60,10 @@ phone-recommendation/
 
 浏览器访问：<http://127.0.0.1:5000>
 
+完整用户流程页面：<http://127.0.0.1:5000/app>
+
+快速演示页面：<http://127.0.0.1:5000/demo>
+
 运行测试：
 
 ```powershell

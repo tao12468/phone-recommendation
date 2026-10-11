@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>手机推荐平台</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>手机推荐平台</h1>
+        <p>登录后获得个性化推荐</p>
+      </div>
+      <div>
+        <span id="login-user" class="health"></span>
+        <button id="logout-btn" class="hidden" type="button">退出登录</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="auth-panel" class="panel">
+        <h2>登录 / 注册</h2>
+        <div class="filter-row">
+          <label>
+            用户名
+            <input id="username" type="text" placeholder="请输入用户名" />
+          </label>
+          <label>
+            密码
+            <input id="password" type="password" placeholder="请输入密码" />
+          </label>
+          <button id="login-btn" type="button">登录</button>
+          <button id="register-btn" type="button">注册</button>
+        </div>
+        <p id="auth-message" class="empty"></p>
+      </section>
+
+      <section id="main-panel" class="hidden">
+        <section class="panel">
+          <h2>偏好设置</h2>
+          <div class="filter-row">
+            <label>
+              预算
+              <input id="budget" type="number" placeholder="例如 4000" />
+            </label>
+            <label>
+              品牌
+              <input id="brand" type="text" placeholder="例如 小米,vivo" />
+            </label>
+            <label>
+              使用场景
+              <input id="scene" type="text" placeholder="例如 游戏,拍照" />
+            </label>
+            <label>
+              系统
+              <input id="os" type="text" placeholder="例如 安卓,iOS" />
+            </label>
+            <button id="recommend-btn" type="button">获取推荐</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">
+            <h2>推荐结果</h2>
+            <button id="pref-btn" type="button">查看我的偏好</button>
+          </div>
+          <div id="result-list" class="card-list"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

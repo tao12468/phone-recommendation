@@ -222,7 +222,8 @@ def collaborative_recommendations():
 
 @app.get("/api/recommendations/hybrid")
 def hybrid_recommendations():
-    user_id = request.args.get("user_id", type=int)
+    auth_user_id = user_id_from_authorization(request.headers.get("Authorization"))
+    user_id = auth_user_id or request.args.get("user_id", type=int)
     budget = request.args.get("budget", type=float)
     brands = _split_csv(request.args.get("brand"))
     scenes = _split_csv(request.args.get("scene"))
@@ -314,6 +315,11 @@ def data_viewer():
 @app.get("/demo")
 def demo_page():
     return send_from_directory("static", "demo.html")
+
+
+@app.get("/app")
+def app_page():
+    return send_from_directory("static", "app.html")
 
 
 @app.get("/api/db/phones")
