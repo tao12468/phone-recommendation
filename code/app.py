@@ -7,6 +7,7 @@ import os
 
 from flask import Flask, jsonify, request, send_from_directory
 
+from auth_utils import create_token, user_id_from_authorization
 from algorithms import content_recommender
 from algorithms import collaborative_recommender
 from algorithms import feedback_engine
@@ -15,6 +16,7 @@ from algorithms.simple_recommender import recommend
 from data import database
 from data import interaction_repository
 from data import preference_repository
+from data import user_repository
 from data.sample_phones import PHONES
 
 
@@ -49,6 +51,56 @@ def health():
             "message": "最小可运行闭环已启动",
         }
     )
+
+
+@app.post("/api/auth/register")
+def register():
+    payload = request.get_json(silent=True) or {}
+    username = (payload.get("username") or "").strip()
+    password = payload.get("password") or ""
+    if not username or not password:
+        return jsonify({"error": "用户名和密码不能为空"}), 400
+
+    try:
+        db_config = {**MYSQL_CONFIG, "db_password": MYSQL_CONFIG["password"]}
+        db_config.pop("password", None)
+        user = user_repository.register_user(username, password, **db_config)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 409
+
+    return jsonify({"token": create_token(user["id"]), "user": user})
+
+
+@app.post("/api/auth/login")
+def login():
+    payload = request.get_json(silent=True) or {}
+    username = (payload.get("username") or "").strip()
+    password = payload.get("password") or ""
+
+    user = user_repository.get_user_by_username(username, **MYSQL_CONFIG)
+    if user is None or not user_repository.verify_password(
+        password, user["password_hash"]
+    ):
+        return jsonify({"error": "用户名或密码错误"}), 401
+
+    return jsonify(
+        {
+            "token": create_token(user["id"]),
+            "user": {"id": user["id"], "username": user["username"]},
+        }
+    )
+
+
+@app.get("/api/auth/me")
+def auth_me():
+    user_id = user_id_from_authorization(request.headers.get("Authorization"))
+    if user_id is None:
+        return jsonify({"error": "未登录或令牌无效"}), 401
+
+    user = user_repository.get_user_by_id(user_id, **MYSQL_CONFIG)
+    if user is None:
+        return jsonify({"error": "用户不存在"}), 404
+    return jsonify(user)
 
 
 @app.get("/api/phones")
@@ -215,7 +267,8 @@ def similar_phone_list(phone_id: int):
 @app.post("/api/behavior")
 def record_behavior():
     payload = request.get_json(silent=True) or request.form
-    user_id = payload.get("user_id")
+    auth_user_id = user_id_from_authorization(request.headers.get("Authorization"))
+    user_id = auth_user_id or payload.get("user_id")
     phone_source_id = payload.get("phone_source_id")
     event_type = payload.get("event_type")
 
@@ -240,6 +293,15 @@ def record_behavior():
 
 @app.get("/api/preferences/<int:user_id>")
 def user_preferences(user_id: int):
+    preferences = preference_repository.load_preferences(user_id, **MYSQL_CONFIG)
+    return jsonify(preferences)
+
+
+@app.get("/api/me/preferences")
+def my_preferences():
+    user_id = user_id_from_authorization(request.headers.get("Authorization"))
+    if user_id is None:
+        return jsonify({"error": "未登录或令牌无效"}), 401
     preferences = preference_repository.load_preferences(user_id, **MYSQL_CONFIG)
     return jsonify(preferences)
 

@@ -126,6 +126,8 @@ Set-Location ..
 - `code/data/seed_interactions.py`：生成示例交互数据
 - `code/algorithms/feedback_engine.py`：行为反馈与偏好更新
 - `code/data/preference_repository.py`：用户偏好存储
+- `code/data/user_repository.py`：用户注册登录
+- `code/auth_utils.py`：JWT 令牌
 
 查看用的 Excel 导出不在正式流程内，单独通过 `code/data/export_excel.py` 按需执行。
 
@@ -172,3 +174,6 @@ Set-Location ..
 - 相似手机：`GET /api/phones/similar/<phone_id>`
 - 行为上报：`POST /api/behavior`
 - 用户偏好：`GET /api/preferences/<user_id>`
+- 注册：`POST /api/auth/register`
+- 登录：`POST /api/auth/login`
+- 当前用户：`GET /api/auth/me`
