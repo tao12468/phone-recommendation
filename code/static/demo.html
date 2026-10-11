@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>个性化手机推荐演示</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>个性化手机推荐演示</h1>
+        <p>混合推荐：内容过滤 + 协同过滤</p>
+      </div>
+      <div class="health" id="status">加载中...</div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2>偏好设置</h2>
+        <div class="filter-row">
+          <label>
+            用户ID
+            <input id="user-id" type="number" value="1" min="1" />
+          </label>
+          <label>
+            预算
+            <input id="budget" type="number" placeholder="例如 4000" />
+          </label>
+          <label>
+            品牌
+            <input id="brand" type="text" placeholder="例如 小米,vivo" />
+          </label>
+          <label>
+            使用场景
+            <input id="scene" type="text" placeholder="例如 游戏,拍照" />
+          </label>
+          <label>
+            系统
+            <input id="os" type="text" placeholder="例如 安卓,iOS" />
+          </label>
+          <button id="recommend-btn" type="button">获取推荐</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-title">
+          <h2>推荐结果</h2>
+          <button id="pref-btn" type="button">查看我的偏好</button>
+        </div>
+        <div id="result-list" class="card-list"></div>
+      </section>
+    </main>
+
+    <script src="/static/demo.js"></script>
+  </body>
+</html>

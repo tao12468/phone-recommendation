@@ -249,6 +249,11 @@ def data_viewer():
     return send_from_directory("static", "data_viewer.html")
 
 
+@app.get("/demo")
+def demo_page():
+    return send_from_directory("static", "demo.html")
+
+
 @app.get("/api/db/phones")
 def database_phones():
     page = request.args.get("page", 1, type=int)
