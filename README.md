@@ -117,6 +117,13 @@ Set-Location ..
 - `code/algorithms/feature_engineering.py`：特征计算
 - `code/data/build_features.py`：生成特征并写入 MySQL
 
+推荐算法：
+
+- `code/algorithms/content_recommender.py`：基于内容过滤
+- `code/algorithms/collaborative_recommender.py`：基于用户的协同过滤
+- `code/data/interaction_repository.py`：交互数据存储
+- `code/data/seed_interactions.py`：生成示例交互数据
+
 查看用的 Excel 导出不在正式流程内，单独通过 `code/data/export_excel.py` 按需执行。
 
 MySQL 表结构见 `code/data/schema_mysql.sql`。
@@ -153,3 +160,9 @@ Set-Location ..
 ```
 
 生成的特征包括：价格档位、机型定位、性能分、性价比、系统类型、核心数、分辨率、发布年份、使用场景标签和品牌编号。
+
+## 推荐接口
+
+- 内容过滤：`GET /api/recommendations/content`
+- 协同过滤：`GET /api/recommendations/collaborative?user_id=1`
+- 相似手机：`GET /api/phones/similar/<phone_id>`

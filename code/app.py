@@ -3,15 +3,27 @@
 阶段 1：最小可运行闭环。
 """
 
+import os
+
 from flask import Flask, jsonify, request, send_from_directory
 
 from algorithms import content_recommender
+from algorithms import collaborative_recommender
 from algorithms.simple_recommender import recommend
 from data import database
+from data import interaction_repository
 from data.sample_phones import PHONES
 
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
+
+MYSQL_CONFIG = {
+    "host": os.environ.get("MYSQL_HOST", "127.0.0.1"),
+    "port": int(os.environ.get("MYSQL_PORT", "3306")),
+    "user": os.environ.get("MYSQL_USER", "root"),
+    "password": os.environ.get("MYSQL_PASSWORD", "123456"),
+    "database": os.environ.get("MYSQL_DATABASE", "phone_recommender"),
+}
 
 
 def _split_csv(value: str | None) -> list[str]:
@@ -121,6 +133,34 @@ def content_recommendations():
             "items": items,
             "strategy": "content_based",
             "message": "基于内容过滤推荐",
+        }
+    )
+
+
+@app.get("/api/recommendations/collaborative")
+def collaborative_recommendations():
+    user_id = request.args.get("user_id", type=int)
+    if not user_id:
+        return jsonify({"error": "缺少 user_id 参数"}), 400
+    limit = request.args.get("limit", 5, type=int)
+    limit = max(1, min(limit, 10))
+
+    interactions = interaction_repository.load_interactions(**MYSQL_CONFIG)
+    items = collaborative_recommender.recommend_for_user(
+        user_id,
+        top_n=limit,
+        interactions=interactions,
+    )
+    message = (
+        "协同过滤推荐"
+        if items
+        else "该用户暂无足够交互数据，可先用冷启动或内容过滤"
+    )
+    return jsonify(
+        {
+            "items": items,
+            "strategy": "collaborative",
+            "message": message,
         }
     )
 
