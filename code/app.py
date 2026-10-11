@@ -3,7 +3,9 @@
 阶段 1：最小可运行闭环。
 """
 
+import json
 import os
+from pathlib import Path
 
 from flask import Flask, jsonify, request, send_from_directory
 
@@ -21,6 +23,8 @@ from data.sample_phones import PHONES
 
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
+
+PHONE_IMAGES_PATH = Path(__file__).resolve().parent / "data" / "phone_images.json"
 
 MYSQL_CONFIG = {
     "host": os.environ.get("MYSQL_HOST", "127.0.0.1"),
@@ -51,6 +55,12 @@ def health():
             "message": "最小可运行闭环已启动",
         }
     )
+
+
+@app.get("/api/phone-images")
+def phone_images():
+    image_map = json.loads(PHONE_IMAGES_PATH.read_text(encoding="utf-8"))
+    return jsonify(image_map)
 
 
 @app.post("/api/auth/register")

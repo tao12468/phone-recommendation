@@ -5,6 +5,17 @@ const loginUser = document.querySelector("#login-user");
 const logoutBtn = document.querySelector("#logout-btn");
 const resultList = document.querySelector("#result-list");
 
+let imageMap = {};
+
+async function loadImages() {
+  try {
+    const response = await fetch("/api/phone-images");
+    imageMap = await response.json();
+  } catch (error) {
+    imageMap = {};
+  }
+}
+
 function token() {
   return localStorage.getItem("token") || "";
 }
@@ -61,13 +72,17 @@ async function loginOrRegister(mode) {
 }
 
 function card(item) {
+  const imageUrl = imageMap[String(item.source_id)] || "";
+  const imageBlock = imageUrl
+    ? `<img class="phone-img" src="${imageUrl}" alt="${item.name}" onerror="this.style.display='none'" />`
+    : `<div class="phone-img placeholder">${(item.brand || "手").slice(0, 1)}</div>`;
   return `
     <article class="phone-card">
+      ${imageBlock}
       <div class="phone-name">${item.name}</div>
       <div class="phone-meta">${item.brand} · ¥${item.price}</div>
       <ul>
         <li>推荐分：${item.score}</li>
-        <li>来源：${item.reason}</li>
         ${item.position ? `<li>定位：${item.position}</li>` : ""}
       </ul>
       <button class="fav-btn" data-source="${item.source_id}">收藏这款</button>
@@ -136,3 +151,4 @@ document.addEventListener("click", async (event) => {
 });
 
 checkLogin();
+loadImages();

@@ -10,7 +10,6 @@ function card(item) {
       <div class="phone-meta">${item.brand} · ¥${item.price}</div>
       <ul>
         <li>推荐分：${item.score}</li>
-        <li>来源：${item.reason}</li>
         ${item.position ? `<li>定位：${item.position}</li>` : ""}
       </ul>
       <button class="fav-btn" data-source="${item.source_id}">收藏这款</button>

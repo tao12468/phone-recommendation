@@ -184,6 +184,10 @@ def parse_list_page(html: str) -> list[dict]:
             (child.strip() for child in link.contents if isinstance(child, str)),
             link.get_text(" ", strip=True),
         )
+        image = li.select_one("a.pic img")
+        image_url = ""
+        if image:
+            image_url = image.get(".src") or image.get("src") or ""
         price = parse_price(text)
         product_id_match = re.search(r"index(\d+)\.shtml", url)
         product_id = int(product_id_match.group(1)) if product_id_match else 0
@@ -195,6 +199,7 @@ def parse_list_page(html: str) -> list[dict]:
                 "brand": guess_brand(name),
                 "price": price,
                 "url": url,
+                "image_url": image_url,
             }
         )
 
