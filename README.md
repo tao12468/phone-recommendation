@@ -112,6 +112,11 @@ Set-Location ..
 - `code/data/mysql_writer.py`：写入 MySQL
 - `code/data/run_pipeline.py`：流水线入口
 
+特征工程：
+
+- `code/algorithms/feature_engineering.py`：特征计算
+- `code/data/build_features.py`：生成特征并写入 MySQL
+
 查看用的 Excel 导出不在正式流程内，单独通过 `code/data/export_excel.py` 按需执行。
 
 MySQL 表结构见 `code/data/schema_mysql.sql`。
@@ -136,3 +141,15 @@ Set-Location code
 ..\.venv\Scripts\python.exe -m data.export_excel --password 123456
 Set-Location ..
 ```
+
+## 特征工程
+
+从清洗后的数据生成推荐特征，并写入 MySQL：
+
+```powershell
+Set-Location code
+..\.venv\Scripts\python.exe -m data.build_features --password 123456
+Set-Location ..
+```
+
+生成的特征包括：价格档位、机型定位、性能分、性价比、系统类型、核心数、分辨率、发布年份、使用场景标签和品牌编号。
