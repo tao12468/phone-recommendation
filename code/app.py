@@ -76,6 +76,34 @@ def phone_detail_data(source_id: int):
     return jsonify(phone)
 
 
+@app.get("/api/phones/all")
+def all_phones():
+    page = request.args.get("page", 1, type=int)
+    page_size = request.args.get("page_size", 20, type=int)
+    page = max(1, page)
+    page_size = max(1, min(page_size, 50))
+
+    phones = json.loads(PHONES_CLEAN_PATH.read_text(encoding="utf-8"))
+    image_map = json.loads(PHONE_IMAGES_PATH.read_text(encoding="utf-8"))
+    start = (page - 1) * page_size
+    end = start + page_size
+    items = []
+    for phone in phones[start:end]:
+        item = dict(phone)
+        item["image_url"] = image_map.get(str(phone["source_id"]), "")
+        items.append(item)
+
+    return jsonify(
+        {
+            "items": items,
+            "page": page,
+            "page_size": page_size,
+            "total": len(phones),
+            "has_more": end < len(phones),
+        }
+    )
+
+
 @app.get("/api/phones/compare")
 def compare_phones():
     ids_text = request.args.get("ids", "")

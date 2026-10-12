@@ -16,8 +16,8 @@
         <span id="login-user" class="health"></span>
         <nav class="topnav">
           <button id="nav-home" class="nav-btn active" type="button">首页</button>
+          <button id="nav-recommend" class="nav-btn hidden" type="button">推荐</button>
           <button id="nav-favorites" class="nav-btn hidden" type="button">我的收藏</button>
-          <button id="nav-compare" class="nav-btn hidden" type="button">机型对比</button>
         </nav>
         <button id="logout-btn" class="hidden" type="button">退出登录</button>
       </div>
@@ -39,6 +39,18 @@
           <button id="register-btn" type="button">注册</button>
         </div>
         <p id="auth-message" class="empty"></p>
+      </section>
+
+      <section id="home-view" class="view hidden">
+        <section class="panel">
+          <div class="section-title">
+            <h2>全部手机</h2>
+            <button id="home-refresh" type="button">换一批</button>
+          </div>
+          <div id="home-list" class="card-list"></div>
+          <p id="home-loading" class="empty hidden">正在加载...</p>
+          <p id="home-end" class="empty hidden">已经到底啦</p>
+        </section>
       </section>
 
       <section id="main-panel" class="hidden">

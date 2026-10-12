@@ -4,8 +4,13 @@ const authMessage = document.querySelector("#auth-message");
 const loginUser = document.querySelector("#login-user");
 const logoutBtn = document.querySelector("#logout-btn");
 const navHome = document.querySelector("#nav-home");
+const navRecommend = document.querySelector("#nav-recommend");
 const navFavorites = document.querySelector("#nav-favorites");
-const navCompare = document.querySelector("#nav-compare");
+const homeView = document.querySelector("#home-view");
+const homeList = document.querySelector("#home-list");
+const homeLoading = document.querySelector("#home-loading");
+const homeEnd = document.querySelector("#home-end");
+const homeRefresh = document.querySelector("#home-refresh");
 const resultList = document.querySelector("#result-list");
 const favoritesView = document.querySelector("#favorites-view");
 const favoritesContent = document.querySelector("#favorites-content");
@@ -22,6 +27,9 @@ const compareGo = document.querySelector("#compare-go");
 
 let imageMap = {};
 let compareIds = [];
+let homePage = 1;
+let homeHasMore = true;
+let homeLoadingMore = false;
 
 async function loadImages() {
   try {
@@ -38,10 +46,9 @@ function token() {
 
 function showLoggedIn(user) {
   authPanel.classList.add("hidden");
-  mainPanel.classList.remove("hidden");
   logoutBtn.classList.remove("hidden");
+  navRecommend.classList.remove("hidden");
   navFavorites.classList.remove("hidden");
-  navCompare.classList.remove("hidden");
   showHomeView();
   loginUser.textContent = user.username;
   loginUser.className = "health ok";
@@ -50,11 +57,12 @@ function showLoggedIn(user) {
 function showLoggedOut() {
   authPanel.classList.remove("hidden");
   mainPanel.classList.add("hidden");
+  homeView.classList.add("hidden");
   favoritesView.classList.add("hidden");
   compareModal.classList.add("hidden");
   logoutBtn.classList.add("hidden");
+  navRecommend.classList.add("hidden");
   navFavorites.classList.add("hidden");
-  navCompare.classList.add("hidden");
   loginUser.textContent = "";
 }
 
@@ -177,24 +185,92 @@ function collectChecked(selector) {
 }
 
 function setActiveNav(activeButton) {
-  [navHome, navFavorites, navCompare].forEach((button) => {
+  [navHome, navRecommend, navFavorites].forEach((button) => {
     button.classList.toggle("active", button === activeButton);
   });
 }
 
 function showHomeView() {
-  mainPanel.classList.remove("hidden");
+  homeView.classList.remove("hidden");
+  mainPanel.classList.add("hidden");
   favoritesView.classList.add("hidden");
   compareModal.classList.add("hidden");
   setActiveNav(navHome);
+  loadHomePhones(true);
+}
+
+function showRecommendView() {
+  homeView.classList.add("hidden");
+  mainPanel.classList.remove("hidden");
+  favoritesView.classList.add("hidden");
+  compareModal.classList.add("hidden");
+  setActiveNav(navRecommend);
 }
 
 function showFavoritesView() {
+  homeView.classList.add("hidden");
   mainPanel.classList.add("hidden");
   favoritesView.classList.remove("hidden");
   compareModal.classList.add("hidden");
   setActiveNav(navFavorites);
   loadFavorites();
+}
+
+function homeCard(phone) {
+  const imageUrl = phone.image_url || imageMap[String(phone.source_id)] || "";
+  const imageBlock = imageUrl
+    ? `<img class="phone-img" src="${imageUrl}" alt="${phone.name}" />`
+    : `<div class="phone-img placeholder">${(phone.brand || "手").slice(0, 1)}</div>`;
+  const chip = (value, label) =>
+    value !== null && value !== undefined && value !== ""
+      ? `<span class="chip">${label}${value}</span>`
+      : "";
+  return `
+    <article class="phone-card" data-source="${phone.source_id}">
+      ${imageBlock}
+      <div class="phone-name">${phone.name}</div>
+      <div class="phone-meta">${phone.brand}</div>
+      <div class="phone-price">¥${phone.price}</div>
+      <div class="chip-row">
+        ${chip(phone.screen_size ? phone.screen_size + "英寸" : "", "屏幕")}
+        ${chip(phone.battery ? phone.battery + "mAh" : "", "电池")}
+        ${chip(phone.ram ? phone.ram + "GB" : "", "内存")}
+        ${chip(phone.rom ? phone.rom + "GB" : "", "存储")}
+      </div>
+      <div class="card-foot">
+        <span class="score">${phone.position || ""}</span>
+        <div class="card-actions">
+          <button class="fav-btn" data-source="${phone.source_id}">收藏</button>
+          <button class="compare-btn" data-source="${phone.source_id}">对比</button>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+async function loadHomePhones(reset = false) {
+  if (homeLoadingMore) return;
+  if (reset) {
+    homePage = 1;
+    homeHasMore = true;
+    homeList.innerHTML = "";
+  }
+  if (!homeHasMore) {
+    homeEnd.classList.remove("hidden");
+    return;
+  }
+
+  homeLoadingMore = true;
+  homeLoading.classList.remove("hidden");
+  homeEnd.classList.add("hidden");
+  const response = await fetch(`/api/phones/all?page=${homePage}&page_size=20`);
+  const data = await response.json();
+  homeList.insertAdjacentHTML("beforeend", data.items.map(homeCard).join(""));
+  homeHasMore = data.has_more;
+  homePage += 1;
+  homeLoadingMore = false;
+  homeLoading.classList.add("hidden");
+  if (!homeHasMore) homeEnd.classList.remove("hidden");
 }
 
 async function loadRecommendations() {
@@ -361,8 +437,18 @@ async function loadFavorites() {
 }
 
 navHome.addEventListener("click", showHomeView);
+navRecommend.addEventListener("click", showRecommendView);
 navFavorites.addEventListener("click", showFavoritesView);
-navCompare.addEventListener("click", openCompare);
+homeRefresh.addEventListener("click", () => loadHomePhones(true));
+
+window.addEventListener("scroll", () => {
+  if (
+    !homeView.classList.contains("hidden") &&
+    window.innerHeight + window.scrollY >= document.body.scrollHeight - 200
+  ) {
+    loadHomePhones();
+  }
+});
 
 document.addEventListener("click", async (event) => {
   const unfavButton = event.target.closest(".unfav-btn");
