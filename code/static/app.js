@@ -76,30 +76,47 @@ function card(item) {
   const imageBlock = imageUrl
     ? `<img class="phone-img" src="${imageUrl}" alt="${item.name}" onerror="this.style.display='none'" />`
     : `<div class="phone-img placeholder">${(item.brand || "手").slice(0, 1)}</div>`;
+  const chip = (value, label) =>
+    value !== null && value !== undefined && value !== ""
+      ? `<span class="chip">${label}${value}</span>`
+      : "";
   return `
     <article class="phone-card">
       ${imageBlock}
       <div class="phone-name">${item.name}</div>
-      <div class="phone-meta">${item.brand} · ¥${item.price}</div>
-      <ul>
-        <li>推荐分：${item.score}</li>
-        ${item.position ? `<li>定位：${item.position}</li>` : ""}
-      </ul>
-      <button class="fav-btn" data-source="${item.source_id}">收藏这款</button>
+      <div class="phone-meta">${item.brand}</div>
+      <div class="phone-price">¥${item.price}</div>
+      <div class="chip-row">
+        ${chip(item.screen_size ? item.screen_size + "英寸" : "", "屏幕")}
+        ${chip(item.battery ? item.battery + "mAh" : "", "电池")}
+        ${chip(item.ram ? item.ram + "GB" : "", "内存")}
+        ${chip(item.rom ? item.rom + "GB" : "", "存储")}
+        ${chip(item.position, "定位")}
+      </div>
+      <div class="card-foot">
+        <span class="score">推荐分 ${item.score}</span>
+        <button class="fav-btn" data-source="${item.source_id}">收藏</button>
+      </div>
     </article>
   `;
 }
 
+function collectChecked(selector) {
+  return Array.from(document.querySelectorAll(`${selector} input:checked`)).map(
+    (input) => input.value
+  );
+}
+
 async function loadRecommendations() {
   const budget = document.querySelector("#budget").value;
-  const brand = document.querySelector("#brand").value;
-  const scene = document.querySelector("#scene").value;
+  const brand = collectChecked("#brand-options");
+  const scene = collectChecked("#scene-options");
   const os = document.querySelector("#os").value;
 
   const params = new URLSearchParams();
   if (budget) params.set("budget", budget);
-  if (brand) params.set("brand", brand);
-  if (scene) params.set("scene", scene);
+  if (brand.length) params.set("brand", brand.join(","));
+  if (scene.length) params.set("scene", scene.join(","));
   if (os) params.set("os", os);
 
   const response = await fetch(`/api/recommendations/hybrid?${params.toString()}`, {

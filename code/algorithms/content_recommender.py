@@ -43,6 +43,12 @@ NUMERIC_COLUMNS = [
 ]
 
 
+def _safe_float(value) -> float | None:
+    if value is None or pd.isna(value):
+        return None
+    return float(value)
+
+
 def load_phones(path: Path = FEATURES_PATH) -> pd.DataFrame:
     """加载手机特征数据。"""
 
@@ -133,6 +139,10 @@ def recommend(
                 "name": row["name"],
                 "brand": row["brand"],
                 "price": float(row["price"]),
+                "screen_size": _safe_float(row.get("screen_size")),
+                "battery": _safe_float(row.get("battery")),
+                "ram": _safe_float(row.get("ram")),
+                "rom": _safe_float(row.get("rom")),
                 "position": row.get("position", ""),
                 "price_level": row.get("price_level", ""),
                 "score": round(float(score), 4),

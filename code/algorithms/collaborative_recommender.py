@@ -9,6 +9,12 @@ from sklearn.metrics.pairwise import cosine_similarity
 from algorithms.content_recommender import load_phones
 
 
+def _safe_float(value) -> float | None:
+    if value is None or pd.isna(value):
+        return None
+    return float(value)
+
+
 def build_user_item_matrix(interactions: pd.DataFrame) -> pd.DataFrame:
     """把交互记录转成用户-手机权重矩阵。"""
 
@@ -90,6 +96,10 @@ def recommend_for_user(
                 "name": row["name"],
                 "brand": row["brand"],
                 "price": float(row["price"]),
+                "screen_size": _safe_float(row.get("screen_size")),
+                "battery": _safe_float(row.get("battery")),
+                "ram": _safe_float(row.get("ram")),
+                "rom": _safe_float(row.get("rom")),
                 "predicted_score": round(score, 4),
                 "reason": "相似用户也喜欢",
             }
