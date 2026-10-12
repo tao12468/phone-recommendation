@@ -356,6 +356,41 @@ def my_preferences():
     return jsonify(preferences)
 
 
+@app.get("/api/me/favorites")
+def my_favorites():
+    user_id = user_id_from_authorization(request.headers.get("Authorization"))
+    if user_id is None:
+        return jsonify({"error": "未登录或令牌无效"}), 401
+
+    interactions = interaction_repository.load_interactions(**MYSQL_CONFIG)
+    favorite_ids = interactions[
+        (interactions["user_id"] == user_id)
+        & (interactions["event_type"] == "favorite")
+    ]["phone_source_id"].tolist()
+
+    phones = json.loads(PHONES_CLEAN_PATH.read_text(encoding="utf-8"))
+    image_map = json.loads(PHONE_IMAGES_PATH.read_text(encoding="utf-8"))
+    items = []
+    for phone in phones:
+        if phone["source_id"] in favorite_ids:
+            item = dict(phone)
+            item["image_url"] = image_map.get(str(phone["source_id"]), "")
+            items.append(item)
+    return jsonify({"items": items})
+
+
+@app.delete("/api/me/favorites/<int:source_id>")
+def remove_favorite(source_id: int):
+    user_id = user_id_from_authorization(request.headers.get("Authorization"))
+    if user_id is None:
+        return jsonify({"error": "未登录或令牌无效"}), 401
+
+    removed = interaction_repository.remove_favorite(
+        user_id, source_id, **MYSQL_CONFIG
+    )
+    return jsonify({"status": "ok", "removed": removed})
+
+
 @app.get("/data")
 def data_viewer():
     return send_from_directory("static", "data_viewer.html")

@@ -113,3 +113,32 @@ def load_interactions(
         columns = [column[0] for column in cursor.description]
     connection.close()
     return pd.DataFrame(rows, columns=columns)
+
+
+def remove_favorite(
+    user_id: int,
+    phone_source_id: int,
+    host: str,
+    port: int,
+    user: str,
+    password: str,
+    database: str,
+) -> int:
+    ensure_interactions_table(host, port, user, password, database)
+    connection = pymysql.connect(
+        host=host,
+        port=port,
+        user=user,
+        password=password,
+        database=database,
+        charset="utf8mb4",
+        autocommit=True,
+    )
+    with connection.cursor() as cursor:
+        affected = cursor.execute(
+            "DELETE FROM user_interactions "
+            "WHERE user_id = %s AND phone_source_id = %s AND event_type = 'favorite'",
+            (user_id, phone_source_id),
+        )
+    connection.close()
+    return int(affected)

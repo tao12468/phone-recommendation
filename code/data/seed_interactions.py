@@ -32,7 +32,7 @@ def main() -> None:
     for _ in range(args.interactions):
         records.append(
             {
-                "user_id": rng.randint(1, args.users),
+                "user_id": 100000 + rng.randint(1, args.users),
                 "phone_source_id": rng.choice(phone_ids),
                 "event_type": rng.choice(events),
             }

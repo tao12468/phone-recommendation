@@ -3,6 +3,7 @@ const mainPanel = document.querySelector("#main-panel");
 const authMessage = document.querySelector("#auth-message");
 const loginUser = document.querySelector("#login-user");
 const logoutBtn = document.querySelector("#logout-btn");
+const favoritesBtn = document.querySelector("#favorites-btn");
 const resultList = document.querySelector("#result-list");
 const detailModal = document.querySelector("#detail-modal");
 const detailContent = document.querySelector("#detail-content");
@@ -14,6 +15,9 @@ const compareBar = document.querySelector("#compare-bar");
 const compareInfo = document.querySelector("#compare-info");
 const compareClear = document.querySelector("#compare-clear");
 const compareGo = document.querySelector("#compare-go");
+const favoritesModal = document.querySelector("#favorites-modal");
+const favoritesContent = document.querySelector("#favorites-content");
+const closeFavorites = document.querySelector("#close-favorites");
 
 let imageMap = {};
 let compareIds = [];
@@ -35,6 +39,7 @@ function showLoggedIn(user) {
   authPanel.classList.add("hidden");
   mainPanel.classList.remove("hidden");
   logoutBtn.classList.remove("hidden");
+  favoritesBtn.classList.remove("hidden");
   loginUser.textContent = user.username;
   loginUser.className = "health ok";
 }
@@ -43,6 +48,7 @@ function showLoggedOut() {
   authPanel.classList.remove("hidden");
   mainPanel.classList.add("hidden");
   logoutBtn.classList.add("hidden");
+  favoritesBtn.classList.add("hidden");
   loginUser.textContent = "";
 }
 
@@ -282,7 +288,54 @@ compareModal.addEventListener("click", (event) => {
   if (event.target === compareModal) compareModal.classList.add("hidden");
 });
 
+async function openFavorites() {
+  favoritesContent.innerHTML = '<p class="empty">加载中...</p>';
+  favoritesModal.classList.remove("hidden");
+  const response = await fetch("/api/me/favorites", {
+    headers: { Authorization: `Bearer ${token()}` },
+  });
+  const data = await response.json();
+  if (!data.items.length) {
+    favoritesContent.innerHTML = '<p class="empty">你还没有收藏手机</p>';
+    return;
+  }
+  favoritesContent.innerHTML = `<h2>我的收藏</h2><div class="card-list">${data.items
+    .map((phone) => {
+      const imageUrl = phone.image_url || imageMap[String(phone.source_id)] || "";
+      const imageBlock = imageUrl
+        ? `<img class="phone-img" src="${imageUrl}" alt="${phone.name}" />`
+        : `<div class="phone-img placeholder">${(phone.brand || "手").slice(0, 1)}</div>`;
+      return `
+        <article class="phone-card" data-source="${phone.source_id}">
+          ${imageBlock}
+          <div class="phone-name">${phone.name}</div>
+          <div class="phone-meta">${phone.brand}</div>
+          <div class="phone-price">¥${phone.price}</div>
+          <button class="unfav-btn" data-source="${phone.source_id}">取消收藏</button>
+        </article>
+      `;
+    })
+    .join("")}</div>`;
+}
+
+favoritesBtn.addEventListener("click", openFavorites);
+closeFavorites.addEventListener("click", () => favoritesModal.classList.add("hidden"));
+favoritesModal.addEventListener("click", (event) => {
+  if (event.target === favoritesModal) favoritesModal.classList.add("hidden");
+});
+
 document.addEventListener("click", async (event) => {
+  const unfavButton = event.target.closest(".unfav-btn");
+  if (unfavButton) {
+    const sourceId = unfavButton.getAttribute("data-source");
+    await fetch(`/api/me/favorites/${sourceId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token()}` },
+    });
+    openFavorites();
+    return;
+  }
+
   const compareButton = event.target.closest(".compare-btn");
   if (compareButton) {
     toggleCompare(compareButton.getAttribute("data-source"));

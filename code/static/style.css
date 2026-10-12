@@ -240,6 +240,15 @@ button:hover {
   background: #475569;
 }
 
+.unfav-btn {
+  margin-top: 10px;
+  background: #e11d48;
+}
+
+.unfav-btn:hover {
+  background: #be123c;
+}
+
 .score {
   color: #0f766e;
   font-size: 14px;
