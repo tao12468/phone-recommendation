@@ -7,8 +7,16 @@ const resultList = document.querySelector("#result-list");
 const detailModal = document.querySelector("#detail-modal");
 const detailContent = document.querySelector("#detail-content");
 const closeDetail = document.querySelector("#close-detail");
+const compareModal = document.querySelector("#compare-modal");
+const compareContent = document.querySelector("#compare-content");
+const closeCompare = document.querySelector("#close-compare");
+const compareBar = document.querySelector("#compare-bar");
+const compareInfo = document.querySelector("#compare-info");
+const compareClear = document.querySelector("#compare-clear");
+const compareGo = document.querySelector("#compare-go");
 
 let imageMap = {};
+let compareIds = [];
 
 async function loadImages() {
   try {
@@ -98,7 +106,10 @@ function card(item) {
       </div>
       <div class="card-foot">
         <span class="score">推荐分 ${item.score}</span>
-        <button class="fav-btn" data-source="${item.source_id}">收藏</button>
+        <div class="card-actions">
+          <button class="fav-btn" data-source="${item.source_id}">收藏</button>
+          <button class="compare-btn" data-source="${item.source_id}">对比</button>
+        </div>
       </div>
     </article>
   `;
@@ -195,7 +206,89 @@ logoutBtn.addEventListener("click", () => {
   showLoggedOut();
 });
 
+function toggleCompare(sourceId) {
+  const stringId = String(sourceId);
+  const index = compareIds.indexOf(stringId);
+  if (index >= 0) {
+    compareIds.splice(index, 1);
+  } else if (compareIds.length >= 3) {
+    alert("最多同时对比 3 款手机");
+    return;
+  } else {
+    compareIds.push(stringId);
+  }
+  updateCompareBar();
+}
+
+function updateCompareBar() {
+  compareInfo.textContent = `已选 ${compareIds.length} 款`;
+  compareBar.classList.toggle("hidden", compareIds.length === 0);
+}
+
+function compareRow(label, values) {
+  return `
+    <tr>
+      <th>${label}</th>
+      ${values.map((value) => `<td>${value || "-"}</td>`).join("")}
+    </tr>
+  `;
+}
+
+async function openCompare() {
+  if (compareIds.length < 2) {
+    alert("请至少选择 2 款手机进行对比");
+    return;
+  }
+  const response = await fetch(`/api/phones/compare?ids=${compareIds.join(",")}`);
+  const data = await response.json();
+  const phones = data.items;
+  const rows = [
+    ["图片", phones.map((phone) => phone.image_url ? `<img class="compare-img" src="${phone.image_url}" alt="" />` : "-")],
+    ["名称", phones.map((phone) => phone.name)],
+    ["品牌", phones.map((phone) => phone.brand)],
+    ["价格", phones.map((phone) => "¥" + phone.price)],
+    ["屏幕尺寸", phones.map((phone) => phone.screen_size ? phone.screen_size + " 英寸" : "-")],
+    ["分辨率", phones.map((phone) => phone.resolution)],
+    ["电池容量", phones.map((phone) => phone.battery ? phone.battery + " mAh" : "-")],
+    ["核心数", phones.map((phone) => phone.core_count)],
+    ["摄像头", phones.map((phone) => phone.camera)],
+    ["CPU", phones.map((phone) => phone.cpu)],
+    ["内存", phones.map((phone) => phone.ram ? phone.ram + " GB" : "-")],
+    ["存储", phones.map((phone) => phone.rom ? phone.rom + " GB" : "-")],
+    ["系统", phones.map((phone) => phone.os)],
+    ["使用场景", phones.map((phone) => phone.usage_scenes)],
+    ["发布时间", phones.map((phone) => phone.release_date)],
+  ];
+  compareContent.innerHTML = `
+    <h2>机型对比</h2>
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          ${rows.map((row) => compareRow(row[0], row[1])).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+  compareModal.classList.remove("hidden");
+}
+
+compareClear.addEventListener("click", () => {
+  compareIds = [];
+  updateCompareBar();
+});
+compareGo.addEventListener("click", openCompare);
+closeCompare.addEventListener("click", () => compareModal.classList.add("hidden"));
+compareModal.addEventListener("click", (event) => {
+  if (event.target === compareModal) compareModal.classList.add("hidden");
+});
+
 document.addEventListener("click", async (event) => {
+  const compareButton = event.target.closest(".compare-btn");
+  if (compareButton) {
+    toggleCompare(compareButton.getAttribute("data-source"));
+    return;
+  }
+
   const button = event.target.closest(".fav-btn");
   if (button) {
     const sourceId = button.getAttribute("data-source");

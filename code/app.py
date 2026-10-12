@@ -76,6 +76,32 @@ def phone_detail_data(source_id: int):
     return jsonify(phone)
 
 
+@app.get("/api/phones/compare")
+def compare_phones():
+    ids_text = request.args.get("ids", "")
+    id_list = []
+    for item in ids_text.split(","):
+        item = item.strip()
+        if item:
+            id_list.append(int(item))
+    id_list = id_list[:3]
+
+    phones = json.loads(PHONES_CLEAN_PATH.read_text(encoding="utf-8"))
+    image_map = json.loads(PHONE_IMAGES_PATH.read_text(encoding="utf-8"))
+    items = []
+    for source_id in id_list:
+        phone = next(
+            (item for item in phones if item["source_id"] == source_id),
+            None,
+        )
+        if phone is None:
+            continue
+        phone = dict(phone)
+        phone["image_url"] = image_map.get(str(source_id), "")
+        items.append(phone)
+    return jsonify({"items": items})
+
+
 @app.post("/api/auth/register")
 def register():
     payload = request.get_json(silent=True) or {}

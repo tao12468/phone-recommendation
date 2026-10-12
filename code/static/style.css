@@ -227,6 +227,19 @@ button:hover {
   justify-content: space-between;
 }
 
+.card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.compare-btn {
+  background: #64748b;
+}
+
+.compare-btn:hover {
+  background: #475569;
+}
+
 .score {
   color: #0f766e;
   font-size: 14px;
@@ -296,6 +309,38 @@ button:hover {
 .detail-row span:first-child {
   min-width: 72px;
   color: #64748b;
+}
+
+.compare-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 999px;
+  background: #1f2937;
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.3);
+  z-index: 40;
+}
+
+.compare-bar button {
+  background: #334155;
+}
+
+.compare-box {
+  width: min(900px, 100%);
+}
+
+.compare-img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  background: #f1f5f9;
+  border-radius: 8px;
 }
 
 .phone-card ul {
