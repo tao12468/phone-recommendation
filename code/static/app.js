@@ -3,21 +3,21 @@ const mainPanel = document.querySelector("#main-panel");
 const authMessage = document.querySelector("#auth-message");
 const loginUser = document.querySelector("#login-user");
 const logoutBtn = document.querySelector("#logout-btn");
-const favoritesBtn = document.querySelector("#favorites-btn");
+const navHome = document.querySelector("#nav-home");
+const navFavorites = document.querySelector("#nav-favorites");
+const navCompare = document.querySelector("#nav-compare");
 const resultList = document.querySelector("#result-list");
+const favoritesView = document.querySelector("#favorites-view");
+const favoritesContent = document.querySelector("#favorites-content");
+const compareView = document.querySelector("#compare-view");
+const compareContent = document.querySelector("#compare-content");
 const detailModal = document.querySelector("#detail-modal");
 const detailContent = document.querySelector("#detail-content");
 const closeDetail = document.querySelector("#close-detail");
-const compareModal = document.querySelector("#compare-modal");
-const compareContent = document.querySelector("#compare-content");
-const closeCompare = document.querySelector("#close-compare");
 const compareBar = document.querySelector("#compare-bar");
 const compareInfo = document.querySelector("#compare-info");
 const compareClear = document.querySelector("#compare-clear");
 const compareGo = document.querySelector("#compare-go");
-const favoritesModal = document.querySelector("#favorites-modal");
-const favoritesContent = document.querySelector("#favorites-content");
-const closeFavorites = document.querySelector("#close-favorites");
 
 let imageMap = {};
 let compareIds = [];
@@ -39,7 +39,9 @@ function showLoggedIn(user) {
   authPanel.classList.add("hidden");
   mainPanel.classList.remove("hidden");
   logoutBtn.classList.remove("hidden");
-  favoritesBtn.classList.remove("hidden");
+  navFavorites.classList.remove("hidden");
+  navCompare.classList.remove("hidden");
+  showHomeView();
   loginUser.textContent = user.username;
   loginUser.className = "health ok";
 }
@@ -47,8 +49,11 @@ function showLoggedIn(user) {
 function showLoggedOut() {
   authPanel.classList.remove("hidden");
   mainPanel.classList.add("hidden");
+  favoritesView.classList.add("hidden");
+  compareView.classList.add("hidden");
   logoutBtn.classList.add("hidden");
-  favoritesBtn.classList.add("hidden");
+  navFavorites.classList.add("hidden");
+  navCompare.classList.add("hidden");
   loginUser.textContent = "";
 }
 
@@ -170,6 +175,34 @@ function collectChecked(selector) {
   );
 }
 
+function setActiveNav(activeButton) {
+  [navHome, navFavorites, navCompare].forEach((button) => {
+    button.classList.toggle("active", button === activeButton);
+  });
+}
+
+function showHomeView() {
+  mainPanel.classList.remove("hidden");
+  favoritesView.classList.add("hidden");
+  compareView.classList.add("hidden");
+  setActiveNav(navHome);
+}
+
+function showFavoritesView() {
+  mainPanel.classList.add("hidden");
+  favoritesView.classList.remove("hidden");
+  compareView.classList.add("hidden");
+  setActiveNav(navFavorites);
+  loadFavorites();
+}
+
+function showCompareView() {
+  mainPanel.classList.add("hidden");
+  favoritesView.classList.add("hidden");
+  compareView.classList.remove("hidden");
+  setActiveNav(navCompare);
+}
+
 async function loadRecommendations() {
   const budget = document.querySelector("#budget").value;
   const brand = collectChecked("#brand-options");
@@ -275,7 +308,7 @@ async function openCompare() {
       </table>
     </div>
   `;
-  compareModal.classList.remove("hidden");
+  showCompareView();
 }
 
 compareClear.addEventListener("click", () => {
@@ -283,14 +316,9 @@ compareClear.addEventListener("click", () => {
   updateCompareBar();
 });
 compareGo.addEventListener("click", openCompare);
-closeCompare.addEventListener("click", () => compareModal.classList.add("hidden"));
-compareModal.addEventListener("click", (event) => {
-  if (event.target === compareModal) compareModal.classList.add("hidden");
-});
 
-async function openFavorites() {
+async function loadFavorites() {
   favoritesContent.innerHTML = '<p class="empty">加载中...</p>';
-  favoritesModal.classList.remove("hidden");
   const response = await fetch("/api/me/favorites", {
     headers: { Authorization: `Bearer ${token()}` },
   });
@@ -299,29 +327,50 @@ async function openFavorites() {
     favoritesContent.innerHTML = '<p class="empty">你还没有收藏手机</p>';
     return;
   }
-  favoritesContent.innerHTML = `<h2>我的收藏</h2><div class="card-list">${data.items
+  favoritesContent.innerHTML = data.items
     .map((phone) => {
       const imageUrl = phone.image_url || imageMap[String(phone.source_id)] || "";
       const imageBlock = imageUrl
         ? `<img class="phone-img" src="${imageUrl}" alt="${phone.name}" />`
         : `<div class="phone-img placeholder">${(phone.brand || "手").slice(0, 1)}</div>`;
+      const chip = (value, label) =>
+        value !== null && value !== undefined && value !== ""
+          ? `<span class="chip">${label}${value}</span>`
+          : "";
       return `
         <article class="phone-card" data-source="${phone.source_id}">
           ${imageBlock}
           <div class="phone-name">${phone.name}</div>
           <div class="phone-meta">${phone.brand}</div>
           <div class="phone-price">¥${phone.price}</div>
-          <button class="unfav-btn" data-source="${phone.source_id}">取消收藏</button>
+          <div class="chip-row">
+            ${chip(phone.screen_size ? phone.screen_size + "英寸" : "", "屏幕")}
+            ${chip(phone.battery ? phone.battery + "mAh" : "", "电池")}
+            ${chip(phone.ram ? phone.ram + "GB" : "", "内存")}
+            ${chip(phone.rom ? phone.rom + "GB" : "", "存储")}
+          </div>
+          <div class="card-foot">
+            <span class="score">已收藏</span>
+            <div class="card-actions">
+              <button class="unfav-btn" data-source="${phone.source_id}">取消收藏</button>
+              <button class="compare-btn" data-source="${phone.source_id}">对比</button>
+            </div>
+          </div>
         </article>
       `;
     })
-    .join("")}</div>`;
+    .join("");
 }
 
-favoritesBtn.addEventListener("click", openFavorites);
-closeFavorites.addEventListener("click", () => favoritesModal.classList.add("hidden"));
-favoritesModal.addEventListener("click", (event) => {
-  if (event.target === favoritesModal) favoritesModal.classList.add("hidden");
+navHome.addEventListener("click", showHomeView);
+navFavorites.addEventListener("click", showFavoritesView);
+navCompare.addEventListener("click", () => {
+  if (compareIds.length < 2) {
+    showCompareView();
+    compareContent.innerHTML = '<p class="empty">请先在卡片上选择 2 款手机，再点击“开始对比”。</p>';
+    return;
+  }
+  openCompare();
 });
 
 document.addEventListener("click", async (event) => {
@@ -332,7 +381,7 @@ document.addEventListener("click", async (event) => {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token()}` },
     });
-    openFavorites();
+    loadFavorites();
     return;
   }
 

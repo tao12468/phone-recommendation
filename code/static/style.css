@@ -45,6 +45,20 @@ body {
   background: rgba(239, 68, 68, 0.55);
 }
 
+.topnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nav-btn {
+  background: #334155;
+}
+
+.nav-btn.active {
+  background: #2563eb;
+}
+
 main {
   width: min(1180px, calc(100% - 32px));
   margin: 24px auto;
