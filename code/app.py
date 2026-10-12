@@ -25,6 +25,7 @@ from data.sample_phones import PHONES
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
 PHONE_IMAGES_PATH = Path(__file__).resolve().parent / "data" / "phone_images.json"
+PHONES_CLEAN_PATH = Path(__file__).resolve().parent / "data" / "phones_clean.json"
 
 MYSQL_CONFIG = {
     "host": os.environ.get("MYSQL_HOST", "127.0.0.1"),
@@ -61,6 +62,18 @@ def health():
 def phone_images():
     image_map = json.loads(PHONE_IMAGES_PATH.read_text(encoding="utf-8"))
     return jsonify(image_map)
+
+
+@app.get("/api/phones/detail/<int:source_id>")
+def phone_detail_data(source_id: int):
+    phones = json.loads(PHONES_CLEAN_PATH.read_text(encoding="utf-8"))
+    phone = next((item for item in phones if item["source_id"] == source_id), None)
+    if phone is None:
+        return jsonify({"error": "未找到该手机"}), 404
+
+    image_map = json.loads(PHONE_IMAGES_PATH.read_text(encoding="utf-8"))
+    phone["image_url"] = image_map.get(str(source_id), "")
+    return jsonify(phone)
 
 
 @app.post("/api/auth/register")

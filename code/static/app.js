@@ -4,6 +4,9 @@ const authMessage = document.querySelector("#auth-message");
 const loginUser = document.querySelector("#login-user");
 const logoutBtn = document.querySelector("#logout-btn");
 const resultList = document.querySelector("#result-list");
+const detailModal = document.querySelector("#detail-modal");
+const detailContent = document.querySelector("#detail-content");
+const closeDetail = document.querySelector("#close-detail");
 
 let imageMap = {};
 
@@ -81,7 +84,7 @@ function card(item) {
       ? `<span class="chip">${label}${value}</span>`
       : "";
   return `
-    <article class="phone-card">
+    <article class="phone-card" data-source="${item.source_id}">
       ${imageBlock}
       <div class="phone-name">${item.name}</div>
       <div class="phone-meta">${item.brand}</div>
@@ -99,6 +102,49 @@ function card(item) {
       </div>
     </article>
   `;
+}
+
+function detailRow(label, value) {
+  if (!value && value !== 0) return "";
+  return `<div class="detail-row"><span>${label}</span><span>${value}</span></div>`;
+}
+
+async function openDetail(sourceId, fallbackItem) {
+  detailContent.innerHTML = '<p class="empty">加载中...</p>';
+  detailModal.classList.remove("hidden");
+  try {
+    const response = await fetch(`/api/phones/detail/${sourceId}`);
+    const phone = await response.json();
+    const imageUrl = phone.image_url || imageMap[String(sourceId)] || "";
+    const imageBlock = imageUrl
+      ? `<img class="detail-img" src="${imageUrl}" alt="${phone.name}" />`
+      : "";
+    detailContent.innerHTML = `
+      ${imageBlock}
+      <h2>${phone.name || fallbackItem.name}</h2>
+      <div class="phone-meta">${phone.brand || fallbackItem.brand}</div>
+      <div class="phone-price">¥${phone.price}</div>
+      <div class="detail-grid">
+        ${detailRow("屏幕尺寸", phone.screen_size ? phone.screen_size + " 英寸" : "")}
+        ${detailRow("分辨率", phone.resolution)}
+        ${detailRow("电池容量", phone.battery ? phone.battery + " mAh" : "")}
+        ${detailRow("核心数", phone.core_count)}
+        ${detailRow("摄像头", phone.camera)}
+        ${detailRow("CPU", phone.cpu)}
+        ${detailRow("内存", phone.ram ? phone.ram + " GB" : "")}
+        ${detailRow("存储", phone.rom ? phone.rom + " GB" : "")}
+        ${detailRow("系统", phone.os)}
+        ${detailRow("使用场景", phone.usage_scenes)}
+        ${detailRow("发布时间", phone.release_date)}
+      </div>
+    `;
+  } catch (error) {
+    detailContent.innerHTML = '<p class="empty">详情加载失败</p>';
+  }
+}
+
+function closeDetailModal() {
+  detailModal.classList.add("hidden");
 }
 
 function collectChecked(selector) {
@@ -151,20 +197,32 @@ logoutBtn.addEventListener("click", () => {
 
 document.addEventListener("click", async (event) => {
   const button = event.target.closest(".fav-btn");
-  if (!button) return;
-  const sourceId = button.getAttribute("data-source");
-  await fetch("/api/behavior", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token()}`,
-    },
-    body: JSON.stringify({
-      phone_source_id: Number(sourceId),
-      event_type: "favorite",
-    }),
-  });
-  button.textContent = "已收藏";
+  if (button) {
+    const sourceId = button.getAttribute("data-source");
+    await fetch("/api/behavior", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token()}`,
+      },
+      body: JSON.stringify({
+        phone_source_id: Number(sourceId),
+        event_type: "favorite",
+      }),
+    });
+    button.textContent = "已收藏";
+    return;
+  }
+
+  const card = event.target.closest(".phone-card");
+  if (card) {
+    openDetail(card.getAttribute("data-source"), { name: card.querySelector(".phone-name")?.textContent });
+  }
+});
+
+closeDetail.addEventListener("click", closeDetailModal);
+detailModal.addEventListener("click", (event) => {
+  if (event.target === detailModal) closeDetailModal();
 });
 
 checkLogin();
