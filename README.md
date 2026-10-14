@@ -150,11 +150,6 @@ Set-Location code
 ..\.venv\Scripts\python.exe -m pytest -q
 ```
 
-## 文档
-
-- [平台知识手册](docs/04-平台知识手册.md)
-- [从零学习完成项目](docs/05-从零学习完成项目.md)
-
 ## 许可证
 
 本项目仅用于课程学习与毕业设计。
