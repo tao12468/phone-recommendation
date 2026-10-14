@@ -145,7 +145,7 @@ MySQL 表结构见 `code/data/schema_mysql.sql`。
 
 ```powershell
 Set-Location code
-..\.venv\Scripts\python.exe -m data.run_pipeline --password 123456
+..\.venv\Scripts\python.exe -m data.run_pipeline --password 你的MySQL密码
 Set-Location ..
 ```
 
@@ -158,7 +158,7 @@ Set-Location ..
 
 ```powershell
 Set-Location code
-..\.venv\Scripts\python.exe -m data.export_excel --password 123456
+..\.venv\Scripts\python.exe -m data.export_excel --password 你的MySQL密码
 Set-Location ..
 ```
 
@@ -168,7 +168,7 @@ Set-Location ..
 
 ```powershell
 Set-Location code
-..\.venv\Scripts\python.exe -m data.build_features --password 123456
+..\.venv\Scripts\python.exe -m data.build_features --password 你的MySQL密码
 Set-Location ..
 ```
 

@@ -10,7 +10,7 @@ def test_register_login_me():
     username = "test_" + uuid.uuid4().hex[:8]
     response = client.post(
         "/api/auth/register",
-        json={"username": username, "password": "123456"},
+        json={"username": username, "password": "test-password"},
     )
     assert response.status_code == 200
     token = response.get_json()["token"]
@@ -24,7 +24,7 @@ def test_register_login_me():
 
     login_response = client.post(
         "/api/auth/login",
-        json={"username": username, "password": "123456"},
+        json={"username": username, "password": "test-password"},
     )
     assert login_response.status_code == 200
     assert "token" in login_response.get_json()
