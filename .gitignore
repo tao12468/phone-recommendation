@@ -10,3 +10,5 @@ __pycache__/
 node_modules/
 dist/
 build/
+docs/08-两个全栈项目分析.md
+docs/09-项目学习与面试问答.md
